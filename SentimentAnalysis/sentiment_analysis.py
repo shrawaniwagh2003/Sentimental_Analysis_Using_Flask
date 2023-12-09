@@ -1,15 +1,27 @@
-import requests
-import json
-def sentiment_analyzer(text_to_analyse):
-    url = 'https://sn-watson-sentiment-bert.labs.skills.network/v1/watson.runtime.nlp.v1/NlpService/SentimentPredict'
-    myobj = { "raw_document": { "text": text_to_analyse } }
-    header = {"grpc-metadata-mm-model-id": "sentiment_aggregated-bert-workflow_lang_multi_stock"}
-    response = requests.post(url, json = myobj, headers=header)
-    formatted_response = json.loads(response.text)
-    if response.status_code == 200:
-        label = formatted_response['documentSentiment']['label']
-        score = formatted_response['documentSentiment']['score']
-    elif response.status_code == 500:
-        label = None
-        score = None
-    return {'label': label, 'score': score}
+import nltk
+from nltk.sentiment import SentimentIntensityAnalyzer
+
+def sentiment_analyzer(text_to_analyze):
+    # Initialize the SentimentIntensityAnalyzer
+    sia = SentimentIntensityAnalyzer()
+
+    # Get the polarity scores
+    sentiment_scores = sia.polarity_scores(text_to_analyze)
+
+    # Determine the sentiment label based on the compound score
+    compound_score = sentiment_scores['compound']
+    if compound_score >= 0.05:
+        label = 'Positive'
+    elif compound_score <= -0.05:
+        label = 'Negative'
+    else:
+        label = 'Neutral'
+
+    # Return the result
+    return {'label': label, 'score': compound_score}
+
+# Example usage:
+# text_to_analyze = "I love using NLTK for sentiment analysis. It's amazing!"
+# result = sentiment_analyzer(text_to_analyze)
+# sentiment_analyzer("Result of Sentiment Analysis")
+# print(result)
